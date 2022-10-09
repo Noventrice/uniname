@@ -1,0 +1,45 @@
+#!/usr/bin/perl -CSA
+
+###Gets the Unicode name for a codepoint.
+###argv can contain numbers or characters.
+###Bug: there is currently no way to get the name for numerical characters.
+	###eg. '0', '1', ..., '9'
+use strict;
+use warnings;
+use feature 'say';
+#:full requires uppercase.
+#:loose ignores case and most hyphens.
+#But, this makes lookup 2 to 3 times slower.
+#use if $opts{'l'}, 'charnames', ':loose'; #Didn't work,
+#because %opts gets defined at runtime,
+#but `use' runs at compile time.
+use charnames ':full';
+
+sub uniname {
+	my $arg=shift;
+	#Hex is captured into $1, dec is not captured.
+	if( $arg =~ m/^(?: (0x[\da-fA-F]+) | (?:\d+) )$/x ){
+		if($1){
+			say charnames::viacode(hex($arg));
+		}else{
+			say charnames::viacode(int($arg));
+		}
+	}else{
+		for ( 0 .. (length($arg)-1) ){
+			say charnames::viacode(
+				#ord works b/c the -CSA flag on the shebang.
+				ord(substr($arg, $_, 1))
+			);
+		}
+	}
+}
+
+if(-t STDIN){
+	for(@ARGV) {
+		uniname($_);
+	}
+}else{
+	while(<>){
+		uniname($_);
+	}
+}
